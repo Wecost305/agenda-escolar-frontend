@@ -40,7 +40,30 @@
                 <span>🚀</span> Enviar Reporte a Notion
             </button>
         </footer>
-    </div>
+
+        <hr class="my-10 border-slate-200">
+        
+        <section class="bg-slate-100 rounded-2xl p-5 border border-slate-200">
+            <details class="group">
+                <summary class="flex justify-between items-center font-semibold text-sm text-slate-500 cursor-pointer list-none">
+                    <span>⚙️ Configuración del Ciclo Escolar (Carga de Alumnos)</span>
+                    <span class="transition group-open:rotate-180">👇</span>
+                </summary>
+                
+                <div class="mt-4 pt-4 border-t border-slate-200/60 space-y-3">
+                    <p class="text-xs text-slate-500">Sube un archivo de Excel (.xlsx) con dos columnas exactas en la primera fila: <strong>Nombre_Completo</strong> y <strong>CURP</strong>.</p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="file" id="archivo-excel" accept=".xlsx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                        
+                        <button onclick="subirExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-all shrink-0">
+                            📥 Cargar en Notion
+                        </button>
+                    </div>
+                </div>
+            </details>
+        </section>
+    </main>
 
     <script src="script.js"></script>
 </body>
