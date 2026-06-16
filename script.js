@@ -2,18 +2,42 @@ const API_URL = "https://agenda-escolar-backend.onrender.com";
 
 document.getElementById('fecha').valueAsDate = new Date();
 
-const alumnosPiloto = [
-    "Valdez Salinas Manuel",
-    "Rojas Sanchez Carmen",
-];
+// Dejamos el arreglo vacío. Ahora Python se encargará de llenarlo con los datos reales de Notion.
+let alumnosGrupo = [];
+
+// NUEVA FUNCIÓN: Traer los alumnos desde el servidor de Python (nuestro Backend)
+async function cargarAlumnosDesdeNotion() {
+    const contenedor = document.getElementById('contenedor-alumnos');
+    
+    try {
+        const respuesta = await fetch(`${API_URL}/obtener-alumnos`);
+        const resultado = await respuesta.json();
+        
+        if (respuesta.ok && resultado.alumnos.length > 0) {
+            alumnosGrupo = resultado.alumnos; // Guardamos la lista real de nombres
+            inicializarFormulario();         // Pintamos las tarjetas en la pantalla
+        } else {
+            contenedor.innerHTML = `
+                <div class="bg-amber-50 text-amber-800 p-4 rounded-xl text-center border border-amber-200 text-sm">
+                    ⚠️ No se encontraron alumnos en Notion. Usa el panel de configuración de abajo para subir tu archivo de Excel.
+                </div>`;
+        }
+    } catch (error) {
+        console.error("Error al obtener alumnos:", error);
+        contenedor.innerHTML = `
+            <div class="bg-red-50 text-red-800 p-4 rounded-xl text-center border border-red-200 text-sm">
+                ❌ Error de conexión. Asegúrate de que el servidor en Render esté activo.
+            </div>`;
+    }
+}
 
 function inicializarFormulario() {
     const contenedor = document.getElementById('contenedor-alumnos');
     contenedor.innerHTML = ""; 
 
-    alumnosPiloto.forEach((alumno, index) => {
+    // Ahora iteramos sobre la lista dinámica cambiada de alumnosGrupo
+    alumnosGrupo.forEach((alumno, index) => {
         const div = document.createElement('div');
-        // Estilizamos cada fila como una tarjeta limpia e independiente
         div.className = 'bg-white rounded-xl p-4 shadow-sm border border-slate-100 transition-all duration-200 hover:border-slate-200';
         div.innerHTML = `
             <div class="flex items-center justify-between gap-4">
@@ -34,7 +58,7 @@ function inicializarFormulario() {
                         <select id="motivo-${index}" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500 text-slate-700 font-medium">
                             <option value="Injustificada">❌ Injustificada</option>
                             <option value="Enfermedad">🏥 Enfermedad / Salud</option>
-                            <option value="Permiso">00Permiso Familiar</option>
+                            <option value="Permiso">📝 Permiso Familiar</option>
                             <option value="Retardo">⏳ Se convirtió en Falta</option>
                         </select>
                     </div>
@@ -57,7 +81,6 @@ function alternarMotivo(index) {
     
     if (estatus === "Falta") {
         contenedorMotivo.classList.remove('hidden');
-        // Cambiamos el color del select para alertar visualmente la falta
         selectEstatus.classList.replace('bg-slate-50', 'bg-red-50');
         selectEstatus.classList.replace('text-slate-600', 'text-red-600');
         selectEstatus.classList.replace('border-slate-200', 'border-red-200');
@@ -73,7 +96,8 @@ async function enviarAsistencia() {
     const fecha = document.getElementById('fecha').value;
     const listaParaEnviar = [];
 
-    alumnosPiloto.forEach((alumno, index) => {
+    // Cambiado para usar el arreglo dinámico alumnosGrupo
+    alumnosGrupo.forEach((alumno, index) => {
         const estatus = document.getElementById(`estatus-${index}`).value;
         const motivo = document.getElementById(`motivo-${index}`).value;
         const nota = document.getElementById(`nota-${index}`).value;
@@ -108,11 +132,9 @@ async function enviarAsistencia() {
     }
 }
 
-// Función para enviar el archivo de Excel al Backend de Python
 async function subirExcel() {
     const inputArchivo = document.getElementById('archivo-excel');
     
-    // Validamos que el maestro sí haya seleccionado un archivo
     if (inputArchivo.files.length === 0) {
         alert("⚠️ Por favor, selecciona un archivo de Excel (.xlsx) primero.");
         return;
@@ -120,22 +142,23 @@ async function subirExcel() {
 
     const archivo = inputArchivo.files[0];
     const formData = new FormData();
-    formData.append('file', archivo); // Añadimos el archivo al paquete de envío
+    formData.append('file', archivo);
 
-    // Cambiamos visualmente el estado del botón o alertamos que está procesando
-    alert("⏳ Subiendo alumnos a Notion... Esto puede tardar unos segundos dependiendo del tamaño de la lista. Da clic en Aceptar para iniciar.");
+    alert("⏳ Subiendo alumnos a Notion... Da clic en Aceptar para iniciar.");
 
     try {
         const respuesta = await fetch(`${API_URL}/cargar-alumnos`, {
             method: 'POST',
-            body: formData // Enviamos el archivo directamente (FormData no lleva headers de JSON)
+            body: formData
         });
 
         const resultado = await respuesta.json();
 
         if (respuesta.ok) {
-            alert("🎯 ¡Éxito! Todos los alumnos del Excel se han creado correctamente en tu base de datos de Notion.");
-            inputArchivo.value = ""; // Limpiamos el selector de archivos
+            alert("🎯 ¡Éxito! Alumnos creados. Recargando la lista...");
+            // Volvemos a llamar a la API para refrescar la pantalla con los nuevos alumnos
+            cargarAlumnosDesdeNotion();
+            inputArchivo.value = ""; 
         } else {
             alert(`⚠️ Error al procesar el Excel: ${resultado.error}`);
         }
@@ -145,4 +168,5 @@ async function subirExcel() {
     }
 }
 
-inicializarFormulario();
+// AL ARRANKAR: En lugar de pintar pilotos directos, disparamos la consulta a Notion
+cargarAlumnosDesdeNotion();
