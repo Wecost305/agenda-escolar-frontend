@@ -108,4 +108,41 @@ async function enviarAsistencia() {
     }
 }
 
+// Función para enviar el archivo de Excel al Backend de Python
+async function subirExcel() {
+    const inputArchivo = document.getElementById('archivo-excel');
+    
+    // Validamos que el maestro sí haya seleccionado un archivo
+    if (inputArchivo.files.length === 0) {
+        alert("⚠️ Por favor, selecciona un archivo de Excel (.xlsx) primero.");
+        return;
+    }
+
+    const archivo = inputArchivo.files[0];
+    const formData = new FormData();
+    formData.append('file', archivo); // Añadimos el archivo al paquete de envío
+
+    // Cambiamos visualmente el estado del botón o alertamos que está procesando
+    alert("⏳ Subiendo alumnos a Notion... Esto puede tardar unos segundos dependiendo del tamaño de la lista. Da clic en Aceptar para iniciar.");
+
+    try {
+        const respuesta = await fetch(`${API_URL}/cargar-alumnos`, {
+            method: 'POST',
+            body: formData // Enviamos el archivo directamente (FormData no lleva headers de JSON)
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            alert("🎯 ¡Éxito! Todos los alumnos del Excel se han creado correctamente en tu base de datos de Notion.");
+            inputArchivo.value = ""; // Limpiamos el selector de archivos
+        } else {
+            alert(`⚠️ Error al procesar el Excel: ${resultado.error}`);
+        }
+    } catch (error) {
+        console.error("Error en la carga masiva:", error);
+        alert("❌ No se pudo conectar con el servidor para la carga masiva.");
+    }
+}
+
 inicializarFormulario();
