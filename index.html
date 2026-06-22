@@ -11,7 +11,6 @@
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen pb-12">
-
     <div class="max-w-2xl mx-auto px-4 pt-8">
         <header class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-6 text-center sm:text-left">
             <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -21,41 +20,35 @@
                     <p class="text-sm font-medium text-slate-500">Ciclo Escolar 2026 - 2027</p>
                 </div>
             </div>
-            
             <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <label for="fecha" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Fecha del Reporte</label>
-                <input type="date" id="fecha" required class="w-full sm:w-auto px-3 py-1.5 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700">
+                <input type="date" id="fecha" required class="w-full sm:w-auto px-3 py-1.5 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-700">
             </div>
         </header>
 
         <main class="space-y-3" id="contenedor-alumnos">
             <div class="bg-white rounded-xl p-8 text-center border border-slate-100 shadow-sm text-slate-400 text-sm">
-                <div class="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-emerald-600 rounded-full mb-2" role="status" aria-label="loading"></div>
-                <p>Cargando lista de alumnos desde el cerebro de Notion...</p>
+                <p>Cargando lista de alumnos desde Notion...</p>
             </div>
         </main>
 
         <footer class="mt-8">
-            <button onclick="enviarAsistencia()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-base tracking-wide">
-                <span>🚀</span> Enviar Reporte a Notion
+            <button onclick="enviarAsistencia()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 text-base">
+                🚀 Enviar Reporte a Notion
             </button>
         </footer>
 
         <hr class="my-10 border-slate-200">
-        
         <section class="bg-slate-100 rounded-2xl p-5 border border-slate-200">
             <details class="group">
                 <summary class="flex justify-between items-center font-semibold text-sm text-slate-500 cursor-pointer list-none">
                     <span>⚙️ Configuración del Ciclo Escolar (Carga de Alumnos)</span>
                     <span class="transition group-open:rotate-180">👇</span>
                 </summary>
-                
                 <div class="mt-4 pt-4 border-t border-slate-200/60 space-y-3">
-                    <p class="text-xs text-slate-500">Sube un archivo de Excel (.xlsx) con dos columnas exactas en la primera fila: <strong>Nombre_Completo</strong> y <strong>CURP</strong>.</p>
-                    
+                    <p class="text-xs text-slate-500">Sube tu archivo .xlsx con las columnas demográficas completas.</p>
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="file" id="archivo-excel" accept=".xlsx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                        
+                        <input type="file" id="archivo-excel" accept=".xlsx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:text-emerald-700 cursor-pointer">
                         <button onclick="subirExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-all shrink-0">
                             📥 Cargar en Notion
                         </button>
@@ -63,8 +56,7 @@
                 </div>
             </details>
         </section>
-    </main>
-
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
