@@ -94,41 +94,54 @@ function alternarMotivo(index) {
 
 async function enviarAsistencia() {
     const fecha = document.getElementById('fecha').value;
-    const listaParaEnviar = [];
+    const listaDivs = document.getElementById('contenedor-alumnos').children;
+    const alumnosAsistencia = [];
 
-    // Cambiado para usar el arreglo dinámico alumnosGrupo
-    alumnosGrupo.forEach((alumno, index) => {
-        const estatus = document.getElementById(`estatus-${index}`).value;
-        const motivo = document.getElementById(`motivo-${index}`).value;
-        const nota = document.getElementById(`nota-${index}`).value;
+    // Recorremos los alumnos dibujados en la interfaz
+    for (let i = 0; i < listaDivs.length; i++) {
+        const nombre = listaDivs[i].querySelector('span').innerText;
+        const estatus = document.getElementById(`estatus-${i}`).value;
+        const motivoSelect = document.getElementById(`motivo-${i}`);
+        const notaInput = document.getElementById(`nota-${i}`);
 
-        listaParaEnviar.push({
-            nombre: alumno,
+        const motivo = motivoSelect ? motivoSelect.value : "Injustificada";
+        const nota = notaInput ? notaInput.value : "";
+
+        // Empaquetamos los datos respetando la nueva estructura relacional
+        alumnosAsistencia.push({
+            nombre: nombre,
             estatus: estatus,
-            motivo: estatus === "Falta" ? motivo : "",
-            nota: estatus === "Falta" ? nota : ""
+            motivo: motivo,
+            nota: nota
         });
-    });
+    }
 
-    const paqueteDatos = { fecha: fecha, alumnos: listaParaEnviar };
+    const payload = {
+        fecha: fecha,
+        alumnos: alumnosAsistencia
+    };
 
     try {
+        // Enviamos los datos al backend en Render
         const respuesta = await fetch(`${API_URL}/registrar-asistencia`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(paqueteDatos)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
         const resultado = await respuesta.json();
-        
+
         if (respuesta.ok) {
-            alert("✅ ¡Reporte enviado con éxito a Notion!");
+            alert("🎯 ¡Pase de lista guardado con éxito en Notion!");
         } else {
-            alert(`⚠️ Error en el servidor: ${resultado.error}`);
+            alert(`⚠️ El servidor respondió con un error: ${resultado.error}`);
         }
+
     } catch (error) {
-        console.error("Error al conectar:", error);
-        alert("❌ No se pudo conectar con el servidor de la agenda.");
+        console.error("Error al enviar la asistencia:", error);
+        alert("❌ No se pudo conectar con el servidor. Revisa que el backend en Render esté activo (Live).");
     }
 }
 
