@@ -70,6 +70,18 @@ function alternarMotivo(index) {
 async function enviarAsistencia() {
     const fecha = document.getElementById('fecha').value;
     const listaParaEnviar = [];
+    
+    // 1. Conseguimos el botón para cambiarle el estado visual
+    // Buscamos el botón por su atributo onclick
+    const botonEnviar = document.querySelector("button[onclick='enviarAsistencia()']");
+
+    // 2. Bloqueamos el botón para evitar que le den clic otra vez en lo que carga
+    if (botonEnviar) {
+        botonEnviar.disabled = true;
+        botonEnviar.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        botonEnviar.classList.add('bg-slate-400', 'cursor-not-allowed');
+        botonEnviar.innerHTML = `⏳ Guardando en Notion y Airtable (Espera)...`;
+    }
 
     alumnosGrupo.forEach((alumno, index) => {
         const estatus = document.getElementById(`estatus-${index}`).value;
@@ -92,12 +104,21 @@ async function enviarAsistencia() {
         });
 
         if (respuesta.ok) {
-            alert("🎯 ¡Pase de lista guardado con éxito en Notion!");
+            alert("🎯 ¡Pase de lista guardado con éxito en Notion y respaldado en Airtable!");
         } else {
             alert("⚠️ Error al guardar el reporte.");
         }
     } catch (error) {
+        console.error(error);
         alert("❌ Error de conexión con el servidor.");
+    } finally {
+        // 3. REINICIAMOS EL BOTÓN (Pase lo que pase, éxito o error, el botón vuelve a la vida)
+        if (botonEnviar) {
+            botonEnviar.disabled = false;
+            botonEnviar.classList.remove('bg-slate-400', 'cursor-not-allowed');
+            botonEnviar.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            botonEnviar.innerHTML = `🚀 Enviar Reporte a Notion`;
+        }
     }
 }
 
