@@ -62,6 +62,48 @@
             <button onclick="enviarCalificaciones()" id="btn-calif" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all">💾 Guardar Notas del Proyecto</button>
         </div>
 
+<div id="seccion-agenda" class="hidden space-y-4">
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+        <h2 class="text-xl font-bold text-slate-900">Agendar Evento o Actividad Escolar</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Nombre del Evento / Actividad</label>
+                <input type="text" id="nombre-evento" placeholder="Ej: Junta de Consejo Técnico o Entrega de Boletas" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Fecha del Evento</label>
+                <input type="date" id="fecha-evento" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Tipo de Evento (SEP)</label>
+                <select id="tipo-evento" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+                    <option value="Actividad Escolar">🏫 Actividad Escolar</option>
+                    <option value="Entrega de Boletas">📄 Entrega de Boletas</option>
+                    <option value="Suspensión de Labores">🛑 Suspensión de Labores</option>
+                    <option value="Vacaciones">🏖️ Vacaciones</option>
+                    <option value="Inscripciones">📝 Inscripciones</option>
+                    <option value="Descarga Administrativa">📊 Descarga Administrativa</option>
+                    <option value="CTE">✏️ CTE</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Trimestre Asociado</label>
+                <select id="trimestre-evento" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+                    <option value="Trimestre 1">Trimestre 1</option>
+                    <option value="Trimestre 2">Trimestre 2</option>
+                    <option value="Trimestre 3">Trimestre 3</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Notas / Acuerdos</label>
+                <input type="text" id="notas-evento" placeholder="Detalles adicionales o acuerdos" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+            </div>
+        </div>
+    </div>
+    <button onclick="enviarEvento()" id="btn-evento" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all">📅 Publicar Evento Escolar</button>
+</div>
+
+        
         <section class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
             <div class="flex items-center gap-3 mb-4"><span class="text-2xl">📊</span><h3 class="font-bold text-slate-900 text-base">Descarga de Boletas Oficiales</h3></div>
             <div class="flex flex-col sm:flex-row gap-3 items-center">
