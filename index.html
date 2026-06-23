@@ -3,74 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pase de Lista | Agenda Digital</title>
+    <title>Agenda Digital Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-    </style>
+    <style> body { font-family: 'Inter', sans-serif; background-color: #f8fafc; } </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen pb-12">
-    <div class="max-w-2xl mx-auto px-4 pt-8">
-        <header class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-6 text-center sm:text-left">
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl text-3xl">📋</div>
+    <div class="max-w-4xl mx-auto px-4 pt-6">
+        
+        <div class="flex bg-slate-200 p-1 rounded-xl mb-6 max-w-md mx-auto">
+            <button onclick="cambiarPestaña('lista')" id="tab-lista" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all bg-white text-slate-900 shadow-sm">📋 Lista de Asistencia</button>
+            <button onclick="cambiarPestaña('calif')" id="tab-calif" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">📝 Registrar Calificaciones</button>
+        </div>
+
+        <div id="seccion-lista" class="space-y-4">
+            <header class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Pase de Lista Diario</h1>
                     <p class="text-sm font-medium text-slate-500">Ciclo Escolar 2026 - 2027</p>
                 </div>
-            </div>
-            <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <label for="fecha" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Fecha del Reporte</label>
-                <input type="date" id="fecha" required class="w-full sm:w-auto px-3 py-1.5 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-700">
-            </div>
-        </header>
+                <input type="date" id="fecha" required class="px-3 py-1.5 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700">
+            </header>
+            <main class="space-y-3" id="contenedor-alumnos"></main>
+            <button onclick="enviarAsistencia()" id="btn-asistencia" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all">🚀 Enviar Reporte a Notion</button>
+        </div>
 
-        <main class="space-y-3" id="contenedor-alumnos">
-            <div class="bg-white rounded-xl p-8 text-center border border-slate-100 shadow-sm text-slate-400 text-sm">
-                <p>Cargando lista de alumnos desde Notion...</p>
-            </div>
-        </main>
+        <div id="seccion-calif" class="hidden space-y-4">
+            <header class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+                <h2 class="text-xl font-bold text-slate-900">Captura Masiva de Proyectos (NEM)</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Nombre del Proyecto / Tarea</label>
+                        <input type="text" id="nombre-proyecto" placeholder="Ej: Álbum de Rimas o Maqueta" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Trimestre Vigente</label>
+                        <select id="trimestre-proyecto" class="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:outline-none">
+                            <option value="Trimestre 1">Trimestre 1 (Noviembre)</option>
+                            <option value="Trimestre 2">Trimestre 2 (Marzo)</option>
+                            <option value="Trimestre 3">Trimestre 3 (Julio)</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+            <main class="space-y-3" id="contenedor-calificaciones-masivas"></main>
+            <button onclick="enviarCalificaciones()" id="btn-calif" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all">💾 Guardar Notas del Proyecto</button>
+        </div>
 
-        <footer class="mt-8">
-            <button onclick="enviarAsistencia()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 text-base">
-                🚀 Enviar Reporte a Notion
-            </button>
-        </footer>
-<section class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="text-2xl">📊</span>
-                <h3 class="font-bold text-slate-900 text-base">Descarga de Boletas Oficiales</h3>
-            </div>
+        <section class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <div class="flex items-center gap-3 mb-4"><span class="text-2xl">📊</span><h3 class="font-bold text-slate-900 text-base">Descarga de Boletas Oficiales</h3></div>
             <div class="flex flex-col sm:flex-row gap-3 items-center">
-                <select id="select-trimestre" class="w-full sm:w-auto px-3 py-2 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none">
-                    <option value="Trimestre 1">Trimestre 1 (Noviembre)</option>
-                    <option value="Trimestre 2">Trimestre 2 (Marzo)</option>
-                    <option value="Trimestre 3">Trimestre 3 (Julio)</option>
-                </select>
-                <button id="btn-boletas" onclick="descargarBoletas()" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
-                    📥 Generar Boletas (.ZIP)
-                </button>
+                <select id="select-trimestre" class="w-full sm:w-auto px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700"><option value="Trimestre 1">Trimestre 1</option><option value="Trimestre 2">Trimestre 2</option><option value="Trimestre 3">Trimestre 3</option></select>
+                <button id="btn-boletas" onclick="descargarBoletas()" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-xl text-sm">📥 Generar Boletas (.ZIP)</button>
             </div>
         </section>
 
-        
-        <hr class="my-10 border-slate-200">
-        <section class="bg-slate-100 rounded-2xl p-5 border border-slate-200">
+        <section class="mt-6 bg-slate-100 rounded-2xl p-5 border border-slate-200">
             <details class="group">
-                <summary class="flex justify-between items-center font-semibold text-sm text-slate-500 cursor-pointer list-none">
-                    <span>⚙️ Configuración del Ciclo Escolar (Carga de Alumnos)</span>
-                    <span class="transition group-open:rotate-180">👇</span>
-                </summary>
-                <div class="mt-4 pt-4 border-t border-slate-200/60 space-y-3">
-                    <p class="text-xs text-slate-500">Sube tu archivo .xlsx con las columnas demográficas completas.</p>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="file" id="archivo-excel" accept=".xlsx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:text-emerald-700 cursor-pointer">
-                        <button onclick="subirExcel()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-all shrink-0">
-                            📥 Cargar en Notion
-                        </button>
-                    </div>
-                </div>
+                <summary class="flex justify-between font-semibold text-sm text-slate-500 cursor-pointer list-none"><span>⚙️ Configuración (Carga del Padrón de Alumnos)</span><span>👇</span></summary>
+                <div class="mt-4 pt-4 border-t flex gap-2"><input type="file" id="archivo-excel" accept=".xlsx" class="text-xs text-slate-500"><button onclick="subirExcel()" class="bg-slate-800 text-white text-xs py-2 px-4 rounded-lg">Cargar</button></div>
             </details>
         </section>
     </div>
