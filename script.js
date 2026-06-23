@@ -3,31 +3,48 @@ const API_URL = "https://agenda-escolar-backend.onrender.com";
 document.getElementById('fecha').valueAsDate = new Date();
 let alumnosGrupo = [];
 
-async function cargarAlumnosDesdeNotion() {
-    const contenedor = document.getElementById('contenedor-alumnos');
-    try {
-        const respuesta = await fetch(`${API_URL}/obtener-alumnos`);
-        const resultado = await respuesta.json();
-        
-        if (respuesta.ok && resultado.alumnos.length > 0) {
-            alumnosGrupo = resultado.alumnos;
-            inicializarFormulario();
-        } else {
-            contenedor.innerHTML = `<div class="bg-amber-50 text-amber-800 p-4 rounded-xl text-center border text-sm">⚠️ No hay alumnos en Notion. Sube tu archivo Excel abajo.</div>`;
-        }
-    } catch (error) {
-        contenedor.innerHTML = `<div class="bg-red-50 text-red-800 p-4 rounded-xl text-center border text-sm">❌ Error al conectar con el servidor.</div>`;
+function cambiarPestaña(tipo) {
+    const sLista = document.getElementById('seccion-lista');
+    const sCalif = document.getElementById('seccion-calif');
+    const tLista = document.getElementById('tab-lista');
+    const tCalif = document.getElementById('tab-calif');
+
+    if (tipo === 'lista') {
+        sLista.classList.remove('hidden');
+        sCalif.classList.add('hidden');
+        tLista.className = "flex-1 text-sm font-semibold py-2.5 rounded-lg bg-white text-slate-900 shadow-sm";
+        tCalif.className = "flex-1 text-sm font-semibold py-2.5 rounded-lg text-slate-600 hover:text-slate-900";
+    } else {
+        sLista.classList.add('hidden');
+        sCalif.classList.remove('hidden');
+        tCalif.className = "flex-1 text-sm font-semibold py-2.5 rounded-lg bg-white text-slate-900 shadow-sm";
+        tLista.className = "flex-1 text-sm font-semibold py-2.5 rounded-lg text-slate-600 hover:text-slate-900";
     }
 }
 
-function inicializarFormulario() {
-    const contenedor = document.getElementById('contenedor-alumnos');
-    contenedor.innerHTML = ""; 
+async function cargarAlumnosDesdeNotion() {
+    try {
+        const respuesta = await fetch(`${API_URL}/obtener-alumnos`);
+        const resultado = await respuesta.json();
+        if (respuesta.ok && resultado.alumnos.length > 0) {
+            alumnosGrupo = resultado.alumnos;
+            inicializarFormularios();
+        }
+    } catch (error) { console.error(error); }
+}
+
+function inicializarFormularios() {
+    const cAsistencia = document.getElementById('contenedor-alumnos');
+    const cCalificaciones = document.getElementById('contenedor-calificaciones-masivas');
+    
+    cAsistencia.innerHTML = "";
+    cCalificaciones.innerHTML = "";
 
     alumnosGrupo.forEach((alumno, index) => {
-        const div = document.createElement('div');
-        div.className = 'bg-white rounded-xl p-4 shadow-sm border border-slate-100';
-        div.innerHTML = `
+        // Formulario Asistencia
+        const divA = document.createElement('div');
+        divA.className = 'bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex flex-col gap-3';
+        divA.innerHTML = `
             <div class="flex items-center justify-between gap-4">
                 <span class="font-medium text-slate-800 text-sm sm:text-base">${alumno}</span>
                 <select id="estatus-${index}" onchange="alternarMotivo(${index})" class="pl-3 pr-8 py-1.5 text-xs font-semibold rounded-lg border bg-slate-50 text-slate-600 border-slate-200">
@@ -35,156 +52,103 @@ function inicializarFormulario() {
                     <option value="Falta">🔴 Falta</option>
                 </select>
             </div>
-            <div id="motivo-container-${index}" class="hidden mt-4 pt-4 border-t border-dashed border-slate-100">
+            <div id="motivo-container-${index}" class="hidden pt-2 border-t border-dashed border-slate-100">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Motivo de Falta</label>
-                        <select id="motivo-${index}" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2">
-                            <option value="Injustificada">❌ Injustificada</option>
-                            <option value="Enfermedad">🏥 Enfermedad / Salud</option>
-                            <option value="Permiso">📝 Permiso Familiar</option>
-                            <option value="Retardo">⏳ Retardo</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Nota / Observación</label>
-                        <input type="text" id="nota-${index}" placeholder="Ej: Trae receta" class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2">
-                    </div>
+                    <select id="motivo-${index}" class="text-xs bg-slate-50 border rounded-lg p-2"><option value="Injustificada">❌ Injustificada</option><option value="Enfermedad">🏥 Enfermedad</option><option value="Permiso">📝 Permiso</option><option value="Retardo">⏳ Retardo</option></select>
+                    <input type="text" id="nota-${index}" placeholder="Nota rápida" class="text-xs bg-slate-50 border rounded-lg p-2">
                 </div>
             </div>
         `;
-        contenedor.appendChild(div);
+        cAsistencia.appendChild(divA);
+
+        // Formulario Calificaciones Masivas (Matriz NEM)
+        const divC = document.createElement('div');
+        divC.className = 'bg-white rounded-xl p-4 shadow-sm border border-slate-100 space-y-3';
+        divC.innerHTML = `
+            <div class="font-semibold text-slate-900 text-sm border-b pb-2">${alumno}</div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <div><label class="text-[9px] uppercase font-bold text-slate-400">Lenguajes</label><input type="number" id="leng-${index}" min="5" max="10" step="0.1" placeholder="0.0" class="w-full border rounded-lg p-1.5 text-xs text-center bg-slate-50"></div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-400">Saberes</label><input type="number" id="sabe-${index}" min="5" max="10" step="0.1" placeholder="0.0" class="w-full border rounded-lg p-1.5 text-xs text-center bg-slate-50"></div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-400">Ética</label><input type="number" id="etic-${index}" min="5" max="10" step="0.1" placeholder="0.0" class="w-full border rounded-lg p-1.5 text-xs text-center bg-slate-50"></div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-400">Humano</label><input type="number" id="huma-${index}" min="5" max="10" step="0.1" placeholder="0.0" class="w-full border rounded-lg p-1.5 text-xs text-center bg-slate-50"></div>
+                <div class="col-span-2 sm:col-span-1"><label class="text-[9px] uppercase font-bold text-slate-400">Observación</label><input type="text" id="nota-proy-${index}" placeholder="Logros" class="w-full border rounded-lg p-1.5 text-xs bg-slate-50"></div>
+            </div>
+        `;
+        cCalificaciones.appendChild(divC);
     });
 }
 
 function alternarMotivo(index) {
     const estatus = document.getElementById(`estatus-${index}`).value;
-    const contenedorMotivo = document.getElementById(`motivo-container-${index}`);
-    if (estatus === "Falta") {
-        contenedorMotivo.classList.remove('hidden');
-    } else {
-        contenedorMotivo.classList.add('hidden');
-    }
+    document.getElementById(`motivo-container-${index}`).classList.toggle('hidden', estatus !== "Falta");
 }
 
 async function enviarAsistencia() {
     const fecha = document.getElementById('fecha').value;
-    const listaParaEnviar = [];
+    const btn = document.getElementById('btn-asistencia');
+    btn.disabled = true; btn.innerHTML = "⏳ Guardando...";
     
-    // 1. Conseguimos el botón para cambiarle el estado visual
-    // Buscamos el botón por su atributo onclick
-    const botonEnviar = document.querySelector("button[onclick='enviarAsistencia()']");
-
-    // 2. Bloqueamos el botón para evitar que le den clic otra vez en lo que carga
-    if (botonEnviar) {
-        botonEnviar.disabled = true;
-        botonEnviar.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-        botonEnviar.classList.add('bg-slate-400', 'cursor-not-allowed');
-        botonEnviar.innerHTML = `⏳ Guardando en Notion y Airtable (Espera)...`;
-    }
-
-    alumnosGrupo.forEach((alumno, index) => {
-        const estatus = document.getElementById(`estatus-${index}`).value;
-        const motivo = document.getElementById(`motivo-${index}`).value;
-        const nota = document.getElementById(`nota-${index}`).value;
-
-        listaParaEnviar.push({
-            nombre: alumno,
-            estatus: estatus,
-            motivo: motivo,
-            nota: nota
-        });
-    });
+    const lista = alumnosGrupo.map((alumno, index) => ({
+        nombre: alumno,
+        estatus: document.getElementById(`estatus-${index}`).value,
+        motivo: document.getElementById(`motivo-${index}`).value,
+        nota: document.getElementById(`nota-${index}`).value
+    }));
 
     try {
-        const respuesta = await fetch(`${API_URL}/registrar-asistencia`, {
+        const r = await fetch(`${API_URL}/registrar-asistencia`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha, alumnos: lista }) });
+        if (r.ok) alert("🎯 Asistencia guardada con éxito.");
+    } catch (e) { alert("Error."); }
+    btn.disabled = false; btn.innerHTML = "🚀 Enviar Reporte a Notion";
+}
+
+async function enviarCalificaciones() {
+    const proyecto = document.getElementById('nombre-proyecto').value;
+    const trimestre = document.getElementById('trimestre-proyecto').value;
+    const btn = document.getElementById('btn-calif');
+
+    if (!proyecto) { alert("⚠️ Escribe el nombre del proyecto."); return; }
+
+    btn.disabled = true; btn.innerHTML = "⏳ Guardando calificaciones en paralelo...";
+
+    const listaCalificaciones = alumnosGrupo.map((alumno, index) => ({
+        nombre: alumno,
+        lenguajes: document.getElementById(`leng-${index}`).value,
+        saberes: document.getElementById(`sabe-${index}`).value,
+        etica: document.getElementById(`etic-${index}`).value,
+        humano: document.getElementById(`huma-${index}`).value,
+        nota: document.getElementById(`nota-proy-${index}`).value
+    }));
+
+    try {
+        const r = await fetch(`${API_URL}/registrar-calificaciones`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha: fecha, alumnos: listaParaEnviar })
+            body: JSON.stringify({ proyecto, trimestre, calificaciones: listaCalificaciones })
         });
-
-        if (respuesta.ok) {
-            alert("🎯 ¡Pase de lista guardado con éxito en Notion y respaldado en Airtable!");
-        } else {
-            alert("⚠️ Error al guardar el reporte.");
+        if (r.ok) {
+            alert("🎯 ¡Calificaciones inyectadas en Notion y respaldadas en Airtable con éxito!");
+            document.getElementById('nombre-proyecto').value = "";
+            inicializarFormularios();
         }
-    } catch (error) {
-        console.error(error);
-        alert("❌ Error de conexión con el servidor.");
-    } finally {
-        // 3. REINICIAMOS EL BOTÓN (Pase lo que pase, éxito o error, el botón vuelve a la vida)
-        if (botonEnviar) {
-            botonEnviar.disabled = false;
-            botonEnviar.classList.remove('bg-slate-400', 'cursor-not-allowed');
-            botonEnviar.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
-            botonEnviar.innerHTML = `🚀 Enviar Reporte a Notion`;
-        }
-    }
+    } catch (e) { alert("❌ Error al guardar."); }
+    btn.disabled = false; btn.innerHTML = "💾 Guardar Notas del Proyecto";
 }
-
-async function subirExcel() {
-    const inputArchivo = document.getElementById('archivo-excel');
-    if (inputArchivo.files.length === 0) {
-        alert("⚠️ Selecciona un archivo de Excel primero.");
-        return;
-    }
-    const formData = new FormData();
-    formData.append('file', inputArchivo.files[0]);
-
-    alert("⏳ Subiendo alumnos... Da clic en Aceptar.");
-    try {
-        const respuesta = await fetch(`${API_URL}/cargar-alumnos`, { method: 'POST', body: formData });
-        if (respuesta.ok) {
-            alert("🎯 ¡Éxito! Alumnos cargados.");
-            cargarAlumnosDesdeNotion();
-        } else {
-            alert("⚠️ Error al procesar el Excel.");
-        }
-    } catch (error) {
-        alert("❌ Error de conexión.");
-    }
-}
-
-cargarAlumnosDesdeNotion();
 
 async function descargarBoletas() {
     const trimestre = document.getElementById('select-trimestre').value;
     const btn = document.getElementById('btn-boletas');
-    
-    // Bloqueamos el botón con un loader para mejorar la experiencia de usuario
-    btn.disabled = true;
-    btn.classList.remove('bg-slate-900', 'hover:bg-slate-800');
-    btn.classList.add('bg-slate-400', 'cursor-not-allowed');
-    btn.innerHTML = `⏳ Cocinando PDFs...`;
-
+    btn.disabled = true; btn.innerHTML = "⏳ Generando PDFs...";
     try {
-        // Hacemos la petición de descarga directa del archivo binario (.zip)
-        const respuesta = await fetch(`${API_URL}/generar-reportes?trimestre=${encodeURIComponent(trimestre)}`);
-        
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron generar los reportes");
+        const r = await fetch(`${API_URL}/generar-reportes?trimestre=${encodeURIComponent(trimestre)}`);
+        if (r.ok) {
+            const b = await r.blob();
+            const url = window.URL.createObjectURL(b);
+            const a = document.createElement('a'); a.href = url; a.download = `Boletas_${trimestre.replace(" ", "_")}.zip`;
+            document.body.appendChild(a); a.click(); a.remove();
         }
-
-        // Convertimos la respuesta en un archivo descargable en el navegador
-        const blob = await respuesta.blob();
-        const urlDescarga = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = urlDescarga;
-        a.download = `Boletas_${trimestre.replace(" ", "_")}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        
-        alert("🎯 ¡Tus boletas han sido generadas y descargadas con éxito!");
-
-    } catch (error) {
-        console.error(error);
-        alert("❌ Ocurrió un error al intentar generar las boletas. Revisa que tengas proyectos cargados en Notion.");
-    } finally {
-        // Regresamos el botón a su estado normal
-        btn.disabled = false;
-        btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
-        btn.classList.add('bg-slate-900', 'hover:bg-slate-800');
-        btn.innerHTML = `📥 Generar Boletas (.ZIP)`;
-    }
+    } catch (e) { alert("Error."); }
+    btn.disabled = false; btn.innerHTML = "📥 Generar Boletas (.ZIP)";
 }
+
+cargarAlumnosDesdeNotion();
