@@ -37,7 +37,24 @@
                 🚀 Enviar Reporte a Notion
             </button>
         </footer>
+<section class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-2xl">📊</span>
+                <h3 class="font-bold text-slate-900 text-base">Descarga de Boletas Oficiales</h3>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 items-center">
+                <select id="select-trimestre" class="w-full sm:w-auto px-3 py-2 text-sm font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none">
+                    <option value="Trimestre 1">Trimestre 1 (Noviembre)</option>
+                    <option value="Trimestre 2">Trimestre 2 (Marzo)</option>
+                    <option value="Trimestre 3">Trimestre 3 (Julio)</option>
+                </select>
+                <button id="btn-boletas" onclick="descargarBoletas()" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-xl transition-all text-sm flex items-center justify-center gap-2">
+                    📥 Generar Boletas (.ZIP)
+                </button>
+            </div>
+        </section>
 
+        
         <hr class="my-10 border-slate-200">
         <section class="bg-slate-100 rounded-2xl p-5 border border-slate-200">
             <details class="group">
