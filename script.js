@@ -146,3 +146,45 @@ async function subirExcel() {
 }
 
 cargarAlumnosDesdeNotion();
+
+async function descargarBoletas() {
+    const trimestre = document.getElementById('select-trimestre').value;
+    const btn = document.getElementById('btn-boletas');
+    
+    // Bloqueamos el botón con un loader para mejorar la experiencia de usuario
+    btn.disabled = true;
+    btn.classList.remove('bg-slate-900', 'hover:bg-slate-800');
+    btn.classList.add('bg-slate-400', 'cursor-not-allowed');
+    btn.innerHTML = `⏳ Cocinando PDFs...`;
+
+    try {
+        // Hacemos la petición de descarga directa del archivo binario (.zip)
+        const respuesta = await fetch(`${API_URL}/generar-reportes?trimestre=${encodeURIComponent(trimestre)}`);
+        
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron generar los reportes");
+        }
+
+        // Convertimos la respuesta en un archivo descargable en el navegador
+        const blob = await respuesta.blob();
+        const urlDescarga = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = urlDescarga;
+        a.download = `Boletas_${trimestre.replace(" ", "_")}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        
+        alert("🎯 ¡Tus boletas han sido generadas y descargadas con éxito!");
+
+    } catch (error) {
+        console.error(error);
+        alert("❌ Ocurrió un error al intentar generar las boletas. Revisa que tengas proyectos cargados en Notion.");
+    } finally {
+        // Regresamos el botón a su estado normal
+        btn.disabled = false;
+        btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+        btn.classList.add('bg-slate-900', 'hover:bg-slate-800');
+        btn.innerHTML = `📥 Generar Boletas (.ZIP)`;
+    }
+}
