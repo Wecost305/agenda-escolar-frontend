@@ -11,10 +11,11 @@
 <body class="text-slate-800 antialiased min-h-screen pb-12">
     <div class="max-w-4xl mx-auto px-4 pt-6">
         
-        <div class="flex bg-slate-200 p-1 rounded-xl mb-6 max-w-md mx-auto">
-            <button onclick="cambiarPestaña('lista')" id="tab-lista" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all bg-white text-slate-900 shadow-sm">📋 Lista de Asistencia</button>
-            <button onclick="cambiarPestaña('calif')" id="tab-calif" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">📝 Registrar Calificaciones</button>
-        </div>
+<div class="flex bg-slate-200 p-1 rounded-xl mb-6 max-w-xl mx-auto">
+    <button onclick="cambiarPestaña('lista')" id="tab-lista" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all bg-white text-slate-900 shadow-sm">📋 Lista</button>
+    <button onclick="cambiarPestaña('calif')" id="tab-calif" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">📝 Calificaciones</button>
+    <button onclick="cambiarPestaña('agenda')" id="tab-agenda" class="flex-1 text-sm font-semibold py-2.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">📅 Agenda</button>
+</div>
 
         <div id="seccion-lista" class="space-y-4">
             <header class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
