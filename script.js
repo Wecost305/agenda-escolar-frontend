@@ -224,7 +224,7 @@ function enviarEvento() {
     const notasEvento = document.getElementById('notas-evento').value.trim();
     
     // Aquí obtenemos el ID del grupo que está seleccionado en tu menú desplegable principal
-    const grupoSelect = document.getElementById('select-grupo'); 
+    const grupoSelect = document.getElementById('selector-grupo');
     const grupoId = grupoSelect ? grupoSelect.value : '';
 
     // 2. Validar antes de enviar para que no falle
