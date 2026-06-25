@@ -215,39 +215,56 @@ async function enviarCalificaciones() {
 }
 
 // 📅 NUEVA FUNCIÓN: Envía el evento de la agenda al Servidor
-async function enviarEvento() {
-    const grupoId = document.getElementById('selector-grupo').value;
-    const evento = document.getElementById('nombre-evento').value;
-    const fecha = document.getElementById('fecha-evento').value;
-    const tipo = document.getElementById('tipo-evento').value;
-    const trimestre = document.getElementById('trimestre-evento').value;
-    const notas = document.getElementById('notas-evento').value;
-    const btn = document.getElementById('btn-evento');
+function enviarEvento() {
+    // 1. Obtener los elementos del HTML
+    const nombreEvento = document.getElementById('nombre-evento').value.trim();
+    const fechaEvento = document.getElementById('fecha-evento').value;
+    const tipoEvento = document.getElementById('tipo-evento').value;
+    const trimestreEvento = document.getElementById('trimestre-evento').value;
+    const notasEvento = document.getElementById('notas-evento').value.trim();
+    
+    // Aquí obtenemos el ID del grupo que está seleccionado en tu menú desplegable principal
+    const grupoSelect = document.getElementById('select-grupo'); 
+    const grupoId = grupoSelect ? grupoSelect.value : '';
 
-    if (!grupoId) { alert("⚠️ Selecciona una escuela primero en la parte superior."); return; }
-    if (!evento) { alert("⚠️ Escribe el nombre del evento o actividad."); return; }
+    // 2. Validar antes de enviar para que no falle
+    if (!grupoId || !nombreEvento || !fechaEvento) {
+        alert("⚠️ Por favor, asegúrate de seleccionar una escuela y llenar el nombre y fecha del evento.");
+        return;
+    }
 
-    btn.disabled = true; btn.innerHTML = "⏳ Publicando en la Agenda...";
+    // 3. Construir los datos EXACTOS que pide tu app.py
+    const datos = {
+        evento: nombreEvento,
+        fecha: fechaEvento,
+        tipo: tipoEvento,
+        trimestre: trimestreEvento,
+        notas: notasEvento,
+        grupo_id: grupoId // <-- Ojo: app.py espera "grupo_id" en minúsculas con guion bajo
+    };
 
-    try {
-        const r = await fetch(`${API_URL}/registrar-evento`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ grupo_id: grupoId, evento, fecha, tipo, trimestre, notas })
-        });
-        
-        if (r.ok) {
-            alert("🎯 ¡Evento publicado en Notion! Tu bot procesará las alertas al instante.");
-            document.getElementById('nombre-evento').value = "";
-            document.getElementById('notas-evento').value = "";
+    // 4. Hacer el envío al Backend de Render
+    fetch('https://agenda-escolar-backend.onrender.com/registrar-evento', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("🎯 ¡Evento publicado en Notion!");
+            // Limpiar formulario si todo sale bien
+            document.getElementById('nombre-evento').value = '';
+            document.getElementById('notas-evento').value = '';
         } else {
             alert("⚠️ Ocurrió un error al guardar el evento.");
         }
-    } catch (error) {
-        console.error(error);
+    })
+    .catch(error => {
+        console.error("Error:", error);
         alert("❌ Error de conexión con el servidor.");
-    }
-    btn.disabled = false; btn.innerHTML = "📅 Publicar Evento Escolar";
+    });
 }
 
 // Descargar PDFs de Boletas
