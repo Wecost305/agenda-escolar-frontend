@@ -216,34 +216,29 @@ async function enviarCalificaciones() {
 
 // 📅 NUEVA FUNCIÓN: Envía el evento de la agenda al Servidor
 function enviarEvento() {
-    // 1. Obtener los elementos del HTML
     const nombreEvento = document.getElementById('nombre-evento').value.trim();
     const fechaEvento = document.getElementById('fecha-evento').value;
     const tipoEvento = document.getElementById('tipo-evento').value;
     const trimestreEvento = document.getElementById('trimestre-evento').value;
     const notasEvento = document.getElementById('notas-evento').value.trim();
     
-    // Aquí obtenemos el ID del grupo que está seleccionado en tu menú desplegable principal
-    const grupoSelect = document.getElementById('selector-grupo');
-    const grupoId = grupoSelect ? grupoSelect.value : '';
+    const selector = document.getElementById('selector-grupo');
+    const grupoId = selector ? selector.value : '';
 
-    // 2. Validar antes de enviar para que no falle
     if (!grupoId || !nombreEvento || !fechaEvento) {
         alert("⚠️ Por favor, asegúrate de seleccionar una escuela y llenar el nombre y fecha del evento.");
         return;
     }
 
-    // 3. Construir los datos EXACTOS que pide tu app.py
     const datos = {
         evento: nombreEvento,
         fecha: fechaEvento,
         tipo: tipoEvento,
         trimestre: trimestreEvento,
         notas: notasEvento,
-        grupo_id: grupoId // <-- Ojo: app.py espera "grupo_id" en minúsculas con guion bajo
+        grupo_id: grupoId
     };
 
-    // 4. Hacer el envío al Backend de Render
     fetch('https://agenda-escolar-backend.onrender.com/registrar-evento', {
         method: 'POST',
         headers: {
@@ -253,8 +248,7 @@ function enviarEvento() {
     })
     .then(response => {
         if (response.ok) {
-            alert("🎯 ¡Evento publicado en Notion!");
-            // Limpiar formulario si todo sale bien
+            alert("🎯 ¡Evento publicado en Notion y sincronizado!");
             document.getElementById('nombre-evento').value = '';
             document.getElementById('notas-evento').value = '';
         } else {
