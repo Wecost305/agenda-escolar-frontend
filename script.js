@@ -86,63 +86,56 @@ async function cargarAlumnosDesdeNotion() {
     const archivoInput = document.getElementById('archivo-excel');
     const selector = document.getElementById('selector-grupo');
     
-    // 1. Validar que se haya seleccionado un archivo
-    if (!archivoInput || !archivoInput.files.length) {
+    // 1. Validar selección del archivo
+    if (!archivoInput || archivoInput.files.length === 0) {
         alert("⚠️ Por favor, selecciona un archivo Excel (.xlsx) antes de continuar.");
         return;
     }
 
-    // 2. Validar que se haya seleccionado una escuela en el menú superior
+    // 2. Validar selección de la escuela
     const grupoId = selector ? selector.value : '';
     if (!grupoId) {
         alert("⚠️ Por favor, selecciona una escuela en la parte superior antes de cargar el archivo.");
         return;
     }
 
+    // 3. Construir el FormData correctamente para Flask
     const file = archivoInput.files[0];
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file); // Llave exacta que busca: request.files['file']
     formData.append('grupo_id', grupoId);
 
-    // Cambiar visualmente el botón para indicar que está procesando
+    // Bloquear el botón visualmente para evitar doble clic
     const botonCarga = document.querySelector("button[onclick='cargarAlumnosDesdeNotion()']");
-    const textoOriginal = botonCarga ? botonCarga.innerHTML : "Cargar Alumnos";
     if (botonCarga) {
         botonCarga.disabled = true;
         botonCarga.innerHTML = "⏳ Cargando alumnos a Notion...";
-        botonCarga.classList.add("opacity-50", "cursor-not-allowed");
     }
 
     try {
-        // 3. Enviar los datos al Backend en Render
+        // 4. Petición al backend
         const response = await fetch('https://agenda-escolar-backend.onrender.com/cargar-alumnos', {
             method: 'POST',
-            body: formData
+            body: formData // Al enviar FormData, NO se deben poner Headers manuales de Content-Type
         });
 
         const resultado = await response.json();
 
         if (response.ok) {
             alert(`🎯 ¡Padrón cargado con éxito! Se registraron ${resultado.registrados} alumnos en Notion.`);
-            archivoInput.value = ''; // Limpiar el campo del archivo
-            
-            // Forzar recarga de alumnos en la interfaz si la función existe
-            if (typeof obtenerAlumnos === 'function') {
-                obtenerAlumnos();
-            }
+            archivoInput.value = ''; // Limpiar input
+            if (typeof obtenerAlumnos === 'function') obtenerAlumnos();
         } else {
-            alert(`⚠️ Error del servidor: ${resultado.error || 'No se pudo procesar el archivo.'}`);
+            alert(`⚠️ Error: ${resultado.error || 'No se pudo procesar el archivo.'}`);
         }
 
     } catch (error) {
-        console.error("Error en la carga masiva:", error);
-        alert("❌ Error crítico de conexión con el servidor de Render.");
+        console.error("Error crítico:", error);
+        alert("❌ Error de conexión con el servidor de Render.");
     } finally {
-        // Restaurar el estado original del botón al terminar (con éxito o error)
         if (botonCarga) {
             botonCarga.disabled = false;
-            botonCarga.innerHTML = textoOriginal;
-            botonCarga.classList.remove("opacity-50", "cursor-not-allowed");
+            botonCarga.innerHTML = "Cargar Alumnos";
         }
     }
 }
