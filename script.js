@@ -178,6 +178,7 @@ async function cargarPadronAlumnosANotion() {
         const resultado = await response.json();
 
         if (response.ok) {
+            console.log('Resultado carga alumnos:', resultado);
             const registrados = resultado.registrados || 0;
             const omitidos = resultado.omitidos || 0;
             const errores = Array.isArray(resultado.errores) ? resultado.errores : [];
