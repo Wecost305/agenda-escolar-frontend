@@ -82,29 +82,68 @@ function cambiarDeGrupo() {
 }
 
 // Filtrar alumnos por plantel
-async function cargarAlumnosDesdeNotion(grupoId) {
-    const cAsistencia = document.getElementById('contenedor-alumnos');
-    const cCalificaciones = document.getElementById('contenedor-calificaciones-masivas');
+async function cargarAlumnosDesdeNotion() {
+    const archivoInput = document.getElementById('archivo-excel');
+    const selector = document.getElementById('selector-grupo');
     
-    cAsistencia.innerHTML = `<div class="text-center text-xs text-slate-400 p-6">⏳ Filtrando lista de asistencia de esta escuela...</div>`;
-    cCalificaciones.innerHTML = "";
-    
+    // 1. Validar que se haya seleccionado un archivo
+    if (!archivoInput || !archivoInput.files.length) {
+        alert("⚠️ Por favor, selecciona un archivo Excel (.xlsx) antes de continuar.");
+        return;
+    }
+
+    // 2. Validar que se haya seleccionado una escuela en el menú superior
+    const grupoId = selector ? selector.value : '';
+    if (!grupoId) {
+        alert("⚠️ Por favor, selecciona una escuela en la parte superior antes de cargar el archivo.");
+        return;
+    }
+
+    const file = archivoInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('grupo_id', grupoId);
+
+    // Cambiar visualmente el botón para indicar que está procesando
+    const botonCarga = document.querySelector("button[onclick='cargarAlumnosDesdeNotion()']");
+    const textoOriginal = botonCarga ? botonCarga.innerHTML : "Cargar Alumnos";
+    if (botonCarga) {
+        botonCarga.disabled = true;
+        botonCarga.innerHTML = "⏳ Cargando alumnos a Notion...";
+        botonCarga.classList.add("opacity-50", "cursor-not-allowed");
+    }
+
     try {
-        const respuesta = await fetch(`${API_URL}/obtener-alumnos?grupo_id=${grupoId}`);
-        const resultado = await respuesta.json();
-        
-        if (respuesta.ok && resultado.alumnos.length > 0) {
-            alumnosGrupo = resultado.alumnos;
-            inicializarFormularios();
+        // 3. Enviar los datos al Backend en Render
+        const response = await fetch('https://agenda-escolar-backend.onrender.com/cargar-alumnos', {
+            method: 'POST',
+            body: formData
+        });
+
+        const resultado = await response.json();
+
+        if (response.ok) {
+            alert(`🎯 ¡Padrón cargado con éxito! Se registraron ${resultado.registrados} alumnos en Notion.`);
+            archivoInput.value = ''; // Limpiar el campo del archivo
+            
+            // Forzar recarga de alumnos en la interfaz si la función existe
+            if (typeof obtenerAlumnos === 'function') {
+                obtenerAlumnos();
+            }
         } else {
-            cAsistencia.innerHTML = `
-                <div class="bg-amber-50 text-amber-800 p-4 rounded-xl text-center border border-amber-200 text-sm">
-                    ⚠️ No hay alumnos asignados a este grupo en Notion.
-                </div>`;
+            alert(`⚠️ Error del servidor: ${resultado.error || 'No se pudo procesar el archivo.'}`);
         }
+
     } catch (error) {
-        console.error("Error al obtener alumnos:", error);
-        cAsistencia.innerHTML = `<div class="bg-red-50 text-red-800 p-4 rounded-xl text-center border border-red-200 text-sm">❌ Error al conectar.</div>`;
+        console.error("Error en la carga masiva:", error);
+        alert("❌ Error crítico de conexión con el servidor de Render.");
+    } finally {
+        // Restaurar el estado original del botón al terminar (con éxito o error)
+        if (botonCarga) {
+            botonCarga.disabled = false;
+            botonCarga.innerHTML = textoOriginal;
+            botonCarga.classList.remove("opacity-50", "cursor-not-allowed");
+        }
     }
 }
 
