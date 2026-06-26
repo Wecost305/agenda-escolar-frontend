@@ -365,23 +365,43 @@ function enviarEvento() {
     });
 }
 
-// Descargar PDFs de Boletas
+// Descargar PDFs de Boletas completas
 async function descargarBoletas() {
     const grupoId = document.getElementById('selector-grupo').value;
-    const trimestre = document.getElementById('select-trimestre').value;
     const btn = document.getElementById('btn-boletas');
     
     if (!grupoId) { alert("⚠️ Selecciona una escuela primero."); return; }
     
-    btn.disabled = true; btn.innerHTML = "⏳ Generando boletas...";
+    btn.disabled = true;
+    btn.innerHTML = "⏳ Generando boletas completas...";
+
     try {
-        const r = await fetch(`${API_URL}/generar-reportes?trimestre=${encodeURIComponent(trimestre)}&grupo_id=${grupoId}`);
-        if (r.ok) {
-            const b = await r.blob();
-            const url = window.URL.createObjectURL(b);
-            const a = document.createElement('a'); a.href = url; a.download = `Boletas_${trimestre.replace(" ", "_")}.zip`;
-            document.body.appendChild(a); a.click(); a.remove();
+        const r = await fetch(`${API_URL}/generar-reportes?grupo_id=${encodeURIComponent(grupoId)}`);
+
+        if (!r.ok) {
+            let detalle = "No se pudieron generar las boletas.";
+            try {
+                const errorJson = await r.json();
+                detalle = errorJson.error || detalle;
+            } catch (_) {}
+            alert(`⚠️ Error: ${detalle}`);
+            return;
         }
-    } catch (e) { alert("❌ Error."); }
-    btn.disabled = false; btn.innerHTML = "📥 Generar Boletas (.ZIP)";
+
+        const b = await r.blob();
+        const url = window.URL.createObjectURL(b);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Boletas_Completas.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error("Error generando boletas:", e);
+        alert("❌ Error de conexión con el servidor.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = "📥 Generar Boletas (.ZIP)";
+    }
 }
