@@ -70,7 +70,7 @@ async function inicializarSelectorGrupos() {
 function cambiarDeGrupo() {
     const grupoId = document.getElementById('selector-grupo').value;
     if (grupoId) {
-        cargarAlumnosDesdeNotion(grupoId);
+        obtenerAlumnos(grupoId);
     } else {
         alumnosGrupo = [];
         document.getElementById('contenedor-alumnos').innerHTML = `
@@ -81,55 +81,135 @@ function cambiarDeGrupo() {
     }
 }
 
-// Filtrar alumnos por plantel
-async function cargarAlumnosDesdeNotion() {
+// Leer alumnos ya registrados en Notion para el grupo seleccionado
+async function obtenerAlumnos(grupoId = null) {
+    const selector = document.getElementById('selector-grupo');
+    const idGrupo = grupoId || (selector ? selector.value : '');
+    const cAsistencia = document.getElementById('contenedor-alumnos');
+    const cCalificaciones = document.getElementById('contenedor-calificaciones-masivas');
+
+    if (!idGrupo) {
+        alumnosGrupo = [];
+        if (cAsistencia) {
+            cAsistencia.innerHTML = `
+                <div class="bg-slate-50 text-slate-500 p-6 rounded-xl text-center border border-slate-200 text-sm">
+                    💡 Selecciona una escuela para cargar alumnos.
+                </div>`;
+        }
+        if (cCalificaciones) cCalificaciones.innerHTML = "";
+        return;
+    }
+
+    if (cAsistencia) {
+        cAsistencia.innerHTML = `
+            <div class="bg-slate-50 text-slate-500 p-6 rounded-xl text-center border border-slate-200 text-sm">
+                ⏳ Cargando alumnos desde Notion...
+            </div>`;
+    }
+    if (cCalificaciones) cCalificaciones.innerHTML = "";
+
+    try {
+        const response = await fetch(`${API_URL}/obtener-alumnos?grupo_id=${encodeURIComponent(idGrupo)}`);
+        const resultado = await response.json();
+
+        if (!response.ok) {
+            throw new Error(resultado.error || 'No se pudieron obtener los alumnos.');
+        }
+
+        alumnosGrupo = Array.isArray(resultado.alumnos) ? resultado.alumnos : [];
+
+        if (alumnosGrupo.length === 0) {
+            if (cAsistencia) {
+                cAsistencia.innerHTML = `
+                    <div class="bg-slate-50 text-slate-500 p-6 rounded-xl text-center border border-slate-200 text-sm">
+                        ⚠️ Este grupo aún no tiene alumnos registrados en Notion. Carga el padrón en la sección de configuración.
+                    </div>`;
+            }
+            if (cCalificaciones) cCalificaciones.innerHTML = "";
+            return;
+        }
+
+        inicializarFormularios();
+    } catch (error) {
+        console.error('Error al obtener alumnos:', error);
+        alumnosGrupo = [];
+        if (cAsistencia) {
+            cAsistencia.innerHTML = `
+                <div class="bg-red-50 text-red-700 p-6 rounded-xl text-center border border-red-200 text-sm">
+                    ❌ ${error.message || 'Error al cargar alumnos desde Notion.'}
+                </div>`;
+        }
+    }
+}
+
+// Cargar padrón de alumnos desde Excel/CSV hacia Notion
+async function cargarPadronAlumnosANotion() {
     const archivoInput = document.getElementById('archivo-excel');
-    
-    // 1. Validar únicamente que el archivo esté seleccionado
+    const selectorGrupo = document.getElementById('selector-grupo');
+    const grupoId = selectorGrupo ? selectorGrupo.value : '';
+
+    if (!grupoId) {
+        alert("⚠️ Primero selecciona la escuela / grupo al que pertenece este padrón.");
+        return;
+    }
+
     if (!archivoInput || archivoInput.files.length === 0) {
-        alert("⚠️ Por favor, selecciona un archivo Excel (.xlsx) antes de continuar.");
+        alert("⚠️ Por favor, selecciona un archivo Excel (.xlsx) o CSV antes de continuar.");
         return;
     }
 
     const file = archivoInput.files[0];
     const formData = new FormData();
-    formData.append('file', file); // Llave exacta que busca tu app.py: request.files['file']
+    formData.append('file', file);
+    formData.append('grupo_id', grupoId);
 
-    // Bloquear el botón visualmente durante el proceso
-    const botonCarga = document.querySelector("button[onclick='cargarAlumnosDesdeNotion()']");
+    const botonCarga = document.getElementById('btn-cargar-alumnos') || document.querySelector("button[onclick='cargarPadronAlumnosANotion()']");
     if (botonCarga) {
         botonCarga.disabled = true;
         botonCarga.innerHTML = "⏳ Cargando alumnos a Notion...";
     }
 
     try {
-        // 2. Enviar el archivo directo al backend en Render
-        const response = await fetch('https://agenda-escolar-backend.onrender.com/cargar-alumnos', {
+        const response = await fetch(`${API_URL}/cargar-alumnos`, {
             method: 'POST',
-            // CRÍTICO: NO agregamos headers de Content-Type aquí para que el navegador maneje el FormData de forma nativa
             body: formData
         });
 
         const resultado = await response.json();
 
         if (response.ok) {
-            alert(`🎯 ¡Padrón cargado con éxito! Se registraron ${resultado.registrados} alumnos en Notion.`);
-            archivoInput.value = ''; // Limpiar el selector de archivo
-            if (typeof obtenerAlumnos === 'function') obtenerAlumnos();
+            const registrados = resultado.registrados || 0;
+            const omitidos = resultado.omitidos || 0;
+            const errores = Array.isArray(resultado.errores) ? resultado.errores : [];
+
+            let mensaje = `🎯 Proceso terminado. Se registraron ${registrados} alumnos en Notion.`;
+            if (omitidos > 0) mensaje += `\n⚠️ Filas omitidas: ${omitidos}.`;
+            if (errores.length > 0) {
+                mensaje += `\n\nPrimeros errores:\n- ${errores.slice(0, 5).join('\n- ')}`;
+            }
+
+            alert(mensaje);
+            archivoInput.value = '';
+            await obtenerAlumnos(grupoId);
         } else {
             alert(`⚠️ Error: ${resultado.error || 'No se pudo procesar el archivo.'}`);
+            if (resultado.detalle) console.error('Detalle backend:', resultado.detalle);
         }
 
     } catch (error) {
         console.error("Error crítico en la carga masiva:", error);
         alert("❌ Error de conexión con el servidor de Render.");
     } finally {
-        // Devolver el botón a su estado original
         if (botonCarga) {
             botonCarga.disabled = false;
             botonCarga.innerHTML = "Cargar Alumnos";
         }
     }
+}
+
+// Compatibilidad por si quedó algún onclick viejo apuntando a esta función
+async function cargarAlumnosDesdeNotion() {
+    return cargarPadronAlumnosANotion();
 }
 // Renderizar tarjetas de control en pantalla
 function inicializarFormularios() {
