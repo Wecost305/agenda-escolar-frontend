@@ -84,28 +84,18 @@ function cambiarDeGrupo() {
 // Filtrar alumnos por plantel
 async function cargarAlumnosDesdeNotion() {
     const archivoInput = document.getElementById('archivo-excel');
-    const selector = document.getElementById('selector-grupo');
     
-    // 1. Validar selección del archivo
+    // 1. Validar únicamente que el archivo esté seleccionado
     if (!archivoInput || archivoInput.files.length === 0) {
         alert("⚠️ Por favor, selecciona un archivo Excel (.xlsx) antes de continuar.");
         return;
     }
 
-    // 2. Validar selección de la escuela
-    const grupoId = selector ? selector.value : '';
-    if (!grupoId) {
-        alert("⚠️ Por favor, selecciona una escuela en la parte superior antes de cargar el archivo.");
-        return;
-    }
-
-    // 3. Construir el FormData correctamente para Flask
     const file = archivoInput.files[0];
     const formData = new FormData();
-    formData.append('file', file); // Llave exacta que busca: request.files['file']
-    formData.append('grupo_id', grupoId);
+    formData.append('file', file); // Llave exacta que busca tu app.py: request.files['file']
 
-    // Bloquear el botón visualmente para evitar doble clic
+    // Bloquear el botón visualmente durante el proceso
     const botonCarga = document.querySelector("button[onclick='cargarAlumnosDesdeNotion()']");
     if (botonCarga) {
         botonCarga.disabled = true;
@@ -113,33 +103,34 @@ async function cargarAlumnosDesdeNotion() {
     }
 
     try {
-        // 4. Petición al backend
+        // 2. Enviar el archivo directo al backend en Render
         const response = await fetch('https://agenda-escolar-backend.onrender.com/cargar-alumnos', {
             method: 'POST',
-            body: formData // Al enviar FormData, NO se deben poner Headers manuales de Content-Type
+            // CRÍTICO: NO agregamos headers de Content-Type aquí para que el navegador maneje el FormData de forma nativa
+            body: formData
         });
 
         const resultado = await response.json();
 
         if (response.ok) {
             alert(`🎯 ¡Padrón cargado con éxito! Se registraron ${resultado.registrados} alumnos en Notion.`);
-            archivoInput.value = ''; // Limpiar input
+            archivoInput.value = ''; // Limpiar el selector de archivo
             if (typeof obtenerAlumnos === 'function') obtenerAlumnos();
         } else {
             alert(`⚠️ Error: ${resultado.error || 'No se pudo procesar el archivo.'}`);
         }
 
     } catch (error) {
-        console.error("Error crítico:", error);
+        console.error("Error crítico en la carga masiva:", error);
         alert("❌ Error de conexión con el servidor de Render.");
     } finally {
+        // Devolver el botón a su estado original
         if (botonCarga) {
             botonCarga.disabled = false;
             botonCarga.innerHTML = "Cargar Alumnos";
         }
     }
 }
-
 // Renderizar tarjetas de control en pantalla
 function inicializarFormularios() {
     const cAsistencia = document.getElementById('contenedor-alumnos');
