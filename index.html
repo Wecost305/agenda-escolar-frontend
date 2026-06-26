@@ -106,8 +106,8 @@
         
         <section class="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
             <div class="flex items-center gap-3 mb-4"><span class="text-2xl">📊</span><h3 class="font-bold text-slate-900 text-base">Descarga de Boletas Oficiales</h3></div>
-            <div class="flex flex-col sm:flex-row gap-3 items-center">
-                <select id="select-trimestre" class="w-full sm:w-auto px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700"><option value="Trimestre 1">Trimestre 1</option><option value="Trimestre 2">Trimestre 2</option><option value="Trimestre 3">Trimestre 3</option></select>
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <p class="text-sm text-slate-500">Se generará un ZIP con la información disponible de todos los periodos.</p>
                 <button id="btn-boletas" onclick="descargarBoletas()" class="bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-5 rounded-xl text-sm">📥 Generar Boletas (.ZIP)</button>
             </div>
         </section>
@@ -122,4 +122,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
